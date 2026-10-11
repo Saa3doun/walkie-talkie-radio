@@ -1,6 +1,6 @@
 # Walkie-Talkie Radio Board
 
-A handheld multi-mode radio on a single PCB: an FM voice transceiver with a 7 W RF power stage, a LoRa data link, DTMF signalling, a real-time clock, and a USB-C PD charged 2-cell Li-ion power system, all controlled by an STM32 microcontroller.
+A handheld multi-mode radio on a single PCB: an FM voice transceiver with a 7 W RF power stage, a switchable voice scrambler, LoRa text messaging with firmware encryption, DTMF signalling, a real-time clock, and a USB-C PD charged 2-cell Li-ion power system, all controlled by an STM32 microcontroller.
 
 **Designer:** Abdelrahman Said, Mechatronics Engineering, Universiti Teknologi Malaysia (UTM)
 **Status:** Layout complete and DRC-clean for fabrication. Prototype fabrication and staged bring-up are next.
@@ -88,9 +88,19 @@ flowchart LR
 | RF | `RD06HVF1` | RF power MOSFET stage for a 7 W output target. |
 | RF | `PE4259` | RF switch on the antenna path. |
 | RF | `SX1278` | LoRa link for long-range, low-rate data. |
-| RF | `SA612` | Double-balanced mixer and oscillator stage. |
-| Audio | `CD4053B` | Analog switch routing the microphone and audio paths. |
+| Audio | `SA612` | Mixer stage used as the voice scrambler. |
+| Audio | `CD4053B` | Analog switch that turns the voice scrambler on or off (`SECURE_EN`). |
 | Audio | `LM386` | Speaker amplifier. |
+
+---
+
+## Secure communication and text messaging
+
+| Mode | How it works |
+|---|---|
+| **Voice scrambling** | When `SECURE_EN` is set, the CD4053B analog switch routes the microphone and receive audio through an SA612 mixer stage (`SCR_OUT`), which scrambles the voice before transmission and restores it on receive. Normal voice bypasses the mixer. |
+| **Encrypted text messages** | Short text messages are sent over the SX1278 LoRa link (SPI to the STM32). Messages are encrypted and decrypted in STM32 firmware before they reach the radio. |
+| **DTMF signalling** | The MT8870 decodes DTMF tones from the voice channel and passes 4-bit codes to the STM32 for selective calling and simple commands. |
 
 ---
 
