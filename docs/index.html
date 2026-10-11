@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Walkie-Talkie Radio Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: engineering dossier — spec strip, board viewer, then numbered work log only where order is real */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --ink:#15201a; --muted:#56655c; --line:#d6ddd6;
+  --mask:#0f5a3a; --gold:#b38a2e; --gold-soft:#f1e6c8; --cu-f:#d0412f; --cu-b:#2f6cc4;
+  --ok:#2e7d4f; --wait:#9a6b12;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1310; --surface:#141c18; --ink:#e6ece7; --muted:#9aab9f; --line:#26332c;
+  --mask:#3fae78; --gold:#e0b65a; --gold-soft:#2f2717; --cu-f:#f0705f; --cu-b:#6d9fe8;
+  --ok:#5cc189; --wait:#e2b04a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0d1310; --surface:#141c18; --ink:#e6ece7; --muted:#9aab9f; --line:#26332c;
+  --mask:#3fae78; --gold:#e0b65a; --gold-soft:#2f2717; --cu-f:#f0705f; --cu-b:#6d9fe8;
+  --ok:#5cc189; --wait:#e2b04a; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:40px 64px}
+h1,h2,h3{font-family:var(--f-display);font-stretch:80%;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.9rem;font-weight:700}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+a{color:var(--mask)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+header{display:grid;gap:18px;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.lede{max-width:66ch;font-size:1.12rem;color:var(--muted)}
+.byline{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;font-size:.95rem}
+.status{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--gold-soft);color:var(--ink)}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--wait);display:inline-block}
+
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-top:28px;border:1px solid var(--line);background:var(--surface)}
+.specs div{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.specs dt{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.specs dd{margin:4px 0 0;font-family:var(--f-display);font-stretch:85%;font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.specs dd small{font-family:var(--f-body);font-size:.8rem;font-weight:400;color:var(--muted)}
+
+section{margin-top:64px;display:grid;gap:22px}
+.sec-head{display:grid;gap:6px;max-width:70ch}
+.sec-head p{color:var(--muted)}
+
+.viewer{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.viewer{grid-template-columns:1fr}}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{font:500 .85rem var(--f-mono);padding:7px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.board{background:#0b0d10;border-radius:8px;padding:14px;display:grid;place-items:center}
+.board img{display:block;width:100%;height:auto;max-height:78vh;object-fit:contain}
+.caption{font-size:.88rem;color:var(--muted);margin-top:10px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--f-mono);font-size:.78rem;color:var(--muted);margin-top:8px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:2px;background:var(--c)}
+
+.facts{display:grid;gap:18px}
+.facts .detail{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0b0d10}
+.facts .detail img{display:block;width:100%}
+.facts ul{margin:0;padding-left:1.1em;display:grid;gap:6px}
+
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto}
+.diagram pre{margin:0;min-width:640px}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.93rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+td code{font-family:var(--f-mono);font-size:.88rem;font-weight:500;white-space:nowrap}
+.grp{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);white-space:nowrap}
+
+.deltas{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.delta{padding:16px 18px;border:1px solid var(--line);border-radius:8px;background:var(--surface);display:grid;gap:6px;align-content:start;min-width:0}
+.delta .num{font-family:var(--f-display);font-stretch:80%;font-weight:800;font-size:1.9rem;font-variant-numeric:tabular-nums;line-height:1}
+.delta .num s{color:var(--muted);font-weight:600;text-decoration-thickness:2px}
+.delta .num b{color:var(--mask)}
+.delta p{font-size:.92rem;color:var(--muted)}
+
+.log{display:grid;gap:0;border-top:1px solid var(--line)}
+.log article{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+@media (max-width:640px){.log article{grid-template-columns:1fr;gap:6px}}
+.log .tag{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--gold)}
+.log h3{margin-bottom:6px}
+.log p{color:var(--muted);max-width:72ch}
+
+.steps{counter-reset:s;display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--f-mono);font-size:.85rem;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:var(--surface)}
+.steps b{display:block}
+.steps span{color:var(--muted);font-size:.93rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips span{font-family:var(--f-mono);font-size:.8rem;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+
+footer{margin-top:72px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;font-size:.93rem;color:var(--muted)}
+footer .who{color:var(--ink);font-weight:600}
+.mono{font-family:var(--f-mono);user-select:all}
+@media (prefers-reduced-motion:no-preference){.board img{transition:opacity .2s}}
+</style>
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Hardware project · RF, power &amp; embedded · KiCad</div>
+  <h1>Walkie-Talkie Radio Board</h1>
+  <p class="lede">A handheld multi-mode radio on one PCB: an FM voice transceiver with a 7&nbsp;W RF power stage, a LoRa data link, DTMF signalling, a real-time clock, and a USB-C PD charged 2-cell Li-ion power system, all run by an STM32 microcontroller.</p>
+  <div class="byline">
+    <span>Designed by <strong>Abdelrahman Said</strong>, Mechatronics Engineering, UTM</span>
+    <span class="status"><i></i>Layout complete · DRC-clean for fabrication · prototype bring-up next</span>
+  </div>
+  <dl class="specs">
+    <div><dt>Board size</dt><dd>84.5 × 121.5 <small>mm</small></dd></div>
+    <div><dt>Stack-up</dt><dd>2 layers <small>FR-4, 1 oz</small></dd></div>
+    <div><dt>Components</dt><dd>~190</dd></div>
+    <div><dt>Nets</dt><dd>178+</dd></div>
+    <div><dt>Vias</dt><dd>532 <small>0.3 mm drill</small></dd></div>
+    <div><dt>Track segments</dt><dd>3,661</dd></div>
+  </dl>
+</header>
+
+<section id="board" aria-labelledby="h-board">
+  <div class="sec-head">
+    <div class="eyebrow">The board</div>
+    <h2 id="h-board">Layout</h2>
+    <p>Rendered directly from the final <span class="mono">.kicad_pcb</span> file: copper, pads, vias, zones and silkscreen as they will be fabricated.</p>
+  </div>
+  <div class="viewer">
+    <div>
+      <div class="tabs" role="tablist" aria-label="Board view">
+        <button role="tab" id="t-top" aria-selected="true" data-src="img/top.webp" data-cap="Top side (F.Cu) with solder mask, ENIG pads and silkscreen.">Top side</button>
+        <button role="tab" id="t-bottom" aria-selected="false" data-src="img/bottom.webp" data-cap="Bottom side (B.Cu), mirrored as seen from below.">Bottom side</button>
+        <button role="tab" id="t-layers" aria-selected="false" data-src="img/layers.webp" data-cap="Both copper layers overlaid, as in the KiCad layout editor.">Copper layers</button>
+      </div>
+      <div class="board"><img id="boardimg" src="img/top.webp" alt="Top side of the walkie-talkie PCB" width="1200" height="1728"></div>
+      <p class="caption" id="boardcap">Top side (F.Cu) with solder mask, ENIG pads and silkscreen.</p>
+      <div class="legend" id="legend" hidden><span style="--c:var(--cu-f)">Top copper</span><span style="--c:var(--cu-b)">Bottom copper</span><span style="--c:#e8c070">Plated holes &amp; vias</span><span style="--c:#f0d040">Board outline</span></div>
+    </div>
+    <div class="facts">
+      <div class="detail"><img src="img/detail.webp" alt="Close-up of the STM32F103 microcontroller area with fan-out on both copper layers" width="722" height="602"></div>
+      <p class="caption">Detail: STM32F103 (LQFP-48) fan-out and the dense control area around it.</p>
+      <h3>Where things sit</h3>
+      <ul>
+        <li><strong>Top edge:</strong> antenna feeds (AE1, AE2) and the SA818S radio module (U7), kept away from the switching regulator.</li>
+        <li><strong>Centre:</strong> STM32F103 (U3), DTMF decoder, analog audio switch and RTC.</li>
+        <li><strong>Lower half:</strong> power path: USB-C PD input (J4), charger (U1), buck converter, MOSFET switches and the battery connector (J3).</li>
+        <li><strong>Left edge:</strong> microphone, speaker and audio amplifier, with the coin-cell holder (BT2).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="architecture" aria-labelledby="h-arch">
+  <div class="sec-head">
+    <div class="eyebrow">System</div>
+    <h2 id="h-arch">Architecture</h2>
+    <p>Four blocks share the board: power, control, RF and audio. The microcontroller configures the radios and routes audio between them.</p>
+  </div>
+  <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  subgraph PWR[Power]
+    USB[USB-C input] --> PD[CH224K&lt;br/&gt;USB-PD 12 V request]
+    PD --> CHG[BQ24133&lt;br/&gt;2S Li-ion charger]
+    CHG --> BAT[(2S battery)]
+    BAT --> BUCK[MP1584EN&lt;br/&gt;buck converter]
+  end
+  subgraph CTL[Control]
+    MCU[STM32F103&lt;br/&gt;microcontroller]
+    RTC[DS3231 RTC]
+    DTMF[MT8870&lt;br/&gt;DTMF decoder]
+  end
+  subgraph RF[RF]
+    SA[SA818S&lt;br/&gt;FM transceiver]
+    PA[RD06HVF1&lt;br/&gt;7 W power stage]
+    SW[PE4259&lt;br/&gt;RF switch]
+    LORA[SX1278&lt;br/&gt;LoRa]
+    MIX[SA612&lt;br/&gt;mixer]
+    ANT1((AE1))
+    ANT2((AE2))
+  end
+  subgraph AUD[Audio]
+    MIC[Microphone]
+    MUX[CD4053B&lt;br/&gt;analog switch]
+    AMP[LM386&lt;br/&gt;amplifier]
+    SPK[Speaker]
+  end
+  BUCK --> MCU
+  MCU -- UART --> SA
+  MCU -- SPI --> LORA
+  MCU -- I2C --> RTC
+  DTMF --> MCU
+  SA --> PA --> SW --> ANT1
+  LORA --> ANT2
+  MIC --> MUX --> SA
+  SA --> AMP --> SPK
+  SA --> DTMF
+  MCU --> MUX
+</pre>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Block</th><th>Part</th><th>Role on this board</th></tr></thead>
+      <tbody>
+        <tr><td class="grp">Power</td><td><code>CH224K</code></td><td>Negotiates 12 V from a USB-C PD charger (single resistor on CFG1).</td></tr>
+        <tr><td class="grp">Power</td><td><code>BQ24133</code></td><td>Switch-mode charger for the 2-cell Li-ion pack, with current sensing.</td></tr>
+        <tr><td class="grp">Power</td><td><code>MP1584EN</code></td><td>Buck converter for the logic rails; enable divider and frequency resistor set per datasheet.</td></tr>
+        <tr><td class="grp">Control</td><td><code>STM32F103</code></td><td>Main controller: radio configuration, audio routing, user inputs.</td></tr>
+        <tr><td class="grp">Control</td><td><code>DS3231</code></td><td>Temperature-compensated real-time clock with coin-cell backup.</td></tr>
+        <tr><td class="grp">Control</td><td><code>MT8870</code></td><td>Decodes DTMF tones received over the voice channel.</td></tr>
+        <tr><td class="grp">RF</td><td><code>SA818S</code></td><td>FM voice transceiver module.</td></tr>
+        <tr><td class="grp">RF</td><td><code>RD06HVF1</code></td><td>RF power MOSFET stage for a 7 W output target.</td></tr>
+        <tr><td class="grp">RF</td><td><code>PE4259</code></td><td>RF switch on the antenna path.</td></tr>
+        <tr><td class="grp">RF</td><td><code>SX1278</code></td><td>LoRa link for long-range low-rate data.</td></tr>
+        <tr><td class="grp">RF</td><td><code>SA612</code></td><td>Double-balanced mixer and oscillator stage.</td></tr>
+        <tr><td class="grp">Audio</td><td><code>CD4053B</code></td><td>Analog switch that routes microphone and audio paths.</td></tr>
+        <tr><td class="grp">Audio</td><td><code>LM386</code></td><td>Speaker amplifier.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="work" aria-labelledby="h-work">
+  <div class="sec-head">
+    <div class="eyebrow">Engineering</div>
+    <h2 id="h-work">From first layout to fabrication-ready</h2>
+    <p>The first complete layout failed design-rule checks in hundreds of places and hid several electrical faults. These are the measured results of the clean-up.</p>
+  </div>
+  <div class="deltas">
+    <div class="delta"><div class="num"><s>461</s> → <b>0</b></div><p>DRC errors that block fabrication, including clearance, unconnected and drill-size violations.</p></div>
+    <div class="delta"><div class="num"><s>161</s> → <b>45 mm</b></div><p>Length of the buck converter's switching node, cut by swapping the positions of two power diodes (D1, D7).</p></div>
+    <div class="delta"><div class="num"><s>0.1–0.2</s> → <b>0.3 mm</b></div><p>Minimum via drill, moved onto the fab house's standard process so the board needs no advanced-via surcharge.</p></div>
+    <div class="delta"><div class="num"><b>10</b> nets</div><p>Power nets widened for current, each change checked against neighbouring copper before it was kept.</p></div>
+  </div>
+
+  <div class="log">
+    <article><div class="tag">Schematic</div><div><h3>Regulator enable pin above its rating</h3><p>The MP1584EN EN pin was tied straight to the input rail, above its 6 V absolute maximum. Replaced with a resistor divider (R51–R53) and added the missing frequency-setting resistor.</p></div></article>
+    <article><div class="tag">Schematic</div><div><h3>Floating inputs and pull-ups</h3><p>Seven pull-up resistors were not connected to any rail, and one CD4053B select input was left floating. All were tied to defined levels.</p></div></article>
+    <article><div class="tag">Library</div><div><h3>Diode pin mapping that dropped nets</h3><p>The SS34 symbol used A/C pin names while the footprint used pads 1/2, so every schematic-to-PCB update silently disconnected the diodes. Fixed the mapping and re-verified both diodes net by net.</p></div></article>
+    <article><div class="tag">Layout</div><div><h3>Copper-aware placement and routing</h3><p>New parts were placed only where a clearance map of all existing copper allowed it, not just courtyards. Remaining connections were routed and checked for single-island connectivity on every key net.</p></div></article>
+    <article><div class="tag">Review</div><div><h3>Checked claims, kept correct design choices</h3><p>An external review flagged several "errors". Each was checked against the datasheets; most were wrong (for example, the charger CELL pin is floating on purpose for 2-cell operation) and the design was left as it was.</p></div></article>
+    <article><div class="tag">DFM</div><div><h3>Fabrication package</h3><p>Gerbers and drill files generated and verified against the board geometry. Chose 1 oz copper because 2 oz would need wider tracks and spacing than the 0.15 mm signal routing uses, with tented vias and a cost-optimised order.</p></div></article>
+  </div>
+</section>
+
+<section id="next" aria-labelledby="h-next">
+  <div class="two">
+    <div class="sec-head" style="gap:14px">
+      <div class="eyebrow">Plan</div>
+      <h2 id="h-next">Bring-up sequence</h2>
+      <ol class="steps">
+        <li><div><b>Bare board checks</b><span>Visual inspection and resistance of every rail to ground before any power.</span></div></li>
+        <li><div><b>Power path</b><span>Current-limited bench supply, then USB-C PD negotiation, charger and buck output.</span></div></li>
+        <li><div><b>Microcontroller</b><span>SWD programming, clock, RTC and I2C/SPI/UART bus checks.</span></div></li>
+        <li><div><b>Audio</b><span>Microphone path, analog switching, speaker amplifier and DTMF decoding.</span></div></li>
+        <li><div><b>RF at low power</b><span>SA818S and LoRa into a dummy load before any antenna.</span></div></li>
+        <li><div><b>Power amplifier</b><span>RD06HVF1 stage brought up gradually with current and thermal monitoring.</span></div></li>
+      </ol>
+    </div>
+    <div class="sec-head" style="gap:14px">
+      <div class="eyebrow">Revision B</div>
+      <h2>Four-layer redesign</h2>
+      <p>The current 2-layer board is about one third populated. A 4-layer revision is planned to shrink it to roughly 65 × 90 mm with a solid ground plane on layer 2, a tighter regulator loop next to its controller, and better isolation between the RF stage and the switching supply.</p>
+      <div class="eyebrow" style="margin-top:10px">Tools</div>
+      <div class="chips"><span>KiCad</span><span>Freerouting</span><span>DRC &amp; connectivity verification</span><span>JLCPCB DFM</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div><span class="who">Abdelrahman Said</span> · Mechatronics Engineering, Universiti Teknologi Malaysia</div>
+  <div>Email: <span class="mono">saadoun.wdw@gmail.com</span></div>
+</footer>
+</div>
+
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.tabs button'), img=document.getElementById('boardimg'),
+      cap=document.getElementById('boardcap'), legend=document.getElementById('legend');
+  function pick(b){
+    tabs.forEach(function(t){t.setAttribute('aria-selected', t===b?'true':'false')});
+    img.src=b.dataset.src; img.alt=b.textContent+' of the walkie-talkie PCB'; cap.textContent=b.dataset.cap;
+    legend.hidden = b.id!=='t-layers';
+    try{localStorage.setItem('wt-view',b.id)}catch(e){}
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){pick(b)})});
+  ['top','bottom','layers'].forEach(function(n){var i=new Image(); i.src='img/'+n+'.webp';});
+  try{var s=localStorage.getItem('wt-view'); if(s&&document.getElementById(s)) pick(document.getElementById(s));}catch(e){}
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"neutral"});</script>
+</body>
+</html>
