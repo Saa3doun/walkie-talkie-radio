@@ -1,6 +1,6 @@
 # Walkie-Talkie Radio Board
 
-A handheld multi-mode radio on a single PCB: an FM voice transceiver with a 7 W RF power stage, a switchable voice scrambler, LoRa text messaging with firmware encryption, DTMF signalling, a real-time clock, and a USB-C PD charged 2-cell Li-ion power system, all controlled by an STM32 microcontroller.
+A handheld multi-mode radio on a single PCB: an FM voice transceiver with a 7 W RF power stage, a switchable voice scrambler, frequency hopping, LoRa text messaging with firmware encryption, DTMF signalling, a real-time clock, and a USB-C PD charged 2-cell Li-ion power system, all controlled by an STM32 microcontroller.
 
 **Designer:** Abdelrahman Said, Mechatronics Engineering, Universiti Teknologi Malaysia (UTM)
 **Status:** Layout complete and DRC-clean for fabrication. Prototype fabrication and staged bring-up are next.
@@ -99,6 +99,7 @@ flowchart LR
 | Mode | How it works |
 |---|---|
 | **Voice scrambling** | When `SECURE_EN` is set, the CD4053B analog switch routes the microphone and receive audio through an SA612 mixer stage (`SCR_OUT`), which scrambles the voice before transmission and restores it on receive. Normal voice bypasses the mixer. |
+| **Frequency hopping** | Both radios switch channel together following a hopping pattern agreed between the two devices, so a listener on one frequency only hears fragments. On the LoRa link this uses the SX1278's built-in frequency-hopping mode; on the voice radio the STM32 retunes the SA818S over UART on the shared schedule. |
 | **Encrypted text messages** | Short text messages are sent over the SX1278 LoRa link (SPI to the STM32). Messages are encrypted and decrypted in STM32 firmware before they reach the radio. |
 | **DTMF signalling** | The MT8870 decodes DTMF tones from the voice channel and passes 4-bit codes to the STM32 for selective calling and simple commands. |
 
